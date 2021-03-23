@@ -19,6 +19,13 @@ public:
 	std::vector<std::vector<int>> GetImageVec2() {
 		return mImageVec2;
 	}
+	~Encoder() {
+		mAvgOfSquaresVec.clear();
+		mDicIndexOfSquaresVec.clear();
+		mDictionary.clear();
+		mImageVec2.clear();
+		mSquaresVec.clear();
+	}
 
 private:
 	bool DivideImage();

@@ -18,6 +18,12 @@ public:
 			mImageInput = ImageInput;
 		}
 	}
+	~Decoder() {
+		mAvgOfSquaresVec.clear();
+		mDicIndexOfSquaresVec.clear();
+		mDictionary.clear();
+		mImageInput.clear();
+	};
 	bool Decode();
 	bool Plot();
 	bool SaveToFile(std::string filename);

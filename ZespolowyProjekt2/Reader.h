@@ -6,6 +6,9 @@ class Reader
 {
 public:
 	Reader(std::string filename);
+	~Reader() {
+		mImageOutput.clear();
+	};
 	std::vector<std::vector<int>> GetImage();
 
 

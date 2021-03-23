@@ -36,8 +36,8 @@ std::vector<std::vector<int>> Reader::GetImage()
 
 bool Reader::ReadImage() {
 	mImage = cv::imread(mFilename, cv::IMREAD_GRAYSCALE);
-	cv::imshow("Display window", mImage);
-	int k = cv::waitKey(0);
+	//cv::imshow("Display window", mImage);
+	//int k = cv::waitKey(0);
 	mWidth = mImage.size().width;
 	mHeight = mImage.size().height;
 	return true;

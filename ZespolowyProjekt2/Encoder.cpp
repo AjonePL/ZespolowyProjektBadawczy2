@@ -19,7 +19,7 @@ bool Encoder::EncodeToFile(std::string filename)
 {
 	DivideImage();
 	SelectFirstDictionary();
-	LBGAlgorithm(2);
+	LBGAlgorithm(20);
 	return false;
 }
 
@@ -66,7 +66,6 @@ bool Encoder::SelectFirstDictionary() {
 bool Encoder::LBGAlgorithm(int numIter)
 {
 	for (int k = 0; k < numIter+1; k++) {
-		std::cout << k << std::endl;
 		FindBestIndexes();
 		if(k< numIter)
 			ImproveDictionary();
