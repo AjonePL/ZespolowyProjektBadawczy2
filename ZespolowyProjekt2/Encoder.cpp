@@ -8,10 +8,9 @@
 
 
 
-
-Encoder::Encoder(std::vector<std::vector<int>> image, bool isUHD)
+Encoder::Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode)
 {
-	mUHD = isUHD;
+	mInitializationMode = initializationMode;
 	mImageVec2 = image;
 }
 
@@ -44,30 +43,84 @@ bool Encoder::DivideImage() {
 	return true;
 }
 
+bool Encoder::SelectFirstDictionary()
+{
+	switch (mInitializationMode) {
+	case eRandom:
+		SelectFirstRandom();
+		break;
+	case ePNN:
+		SelectFirstPNN();
+		break;
+	default:
+			return false;
+		break;
+	}
+	return true;
+}
 
-bool Encoder::SelectFirstDictionary() {
+
+bool Encoder::SelectFirstRandom() {
 	int dictionarySize;
-	if (!mUHD)
-		dictionarySize = 1024;
-	else
-		dictionarySize = 4096;
-	std::vector<std::vector<int>> out;
-	std::sample(
-		mSquaresVec.begin(),
-		mSquaresVec.end(),
-		std::back_inserter(mDictionary),
-		dictionarySize,
-		std::mt19937{ std::random_device{}() }
-	);
+dictionarySize = 1024;
+std::vector<std::vector<int>> out;
+std::sample(
+	mSquaresVec.begin(),
+	mSquaresVec.end(),
+	std::back_inserter(mDictionary),
+	dictionarySize,
+	std::mt19937{ std::random_device{}() }
+);
 
+return true;
+}
+
+bool Encoder::SelectFirstPNN()
+{
+	int dictionarySize = 4096;
+	mDictionary.resize(dictionarySize);
+	std::vector<int> indexes(mSquaresVec.size(), 0);
+	for (int i = 0; i < mSquaresVec.size(); i++) {
+		std::vector<float> pAvgOfMacro2(8, 0.0);
+		float pAvgOfSq = 0.0;
+		std::vector<float> pAvgOfMacro4(4, 0.0);
+		std::vector<float> pVarOfMacro4(4, 0.0);
+		float pAvgVarOfSq = 0.0;
+		for (int j = 0; j < 8; j++) {
+			pAvgOfMacro2[j] = (mSquaresVec[i][2 * j] + mSquaresVec[i][2 * j + 1]) / 2;
+			pAvgOfSq += pAvgOfMacro2[j];
+		}
+		pAvgOfSq = pAvgOfSq / 8;
+		for (int j = 0; j < 8; j++) {
+			indexes[i] = indexes[i] * 2;
+			if (pAvgOfMacro2[j] >= pAvgOfSq)
+				indexes[i]++;
+		}
+		pAvgOfMacro4[0] = (mSquaresVec[i][0] + mSquaresVec[i][1] + mSquaresVec[i][4] + mSquaresVec[i][5]) / 4;
+		pAvgOfMacro4[1] = (mSquaresVec[i][2] + mSquaresVec[i][3] + mSquaresVec[i][6] + mSquaresVec[i][7]) / 4;
+		pAvgOfMacro4[2] = (mSquaresVec[i][8] + mSquaresVec[i][9] + mSquaresVec[i][12] + mSquaresVec[i][13]) / 4;
+		pAvgOfMacro4[3] = (mSquaresVec[i][10] + mSquaresVec[i][11] + mSquaresVec[i][14] + mSquaresVec[i][15]) / 4;
+		pVarOfMacro4[0] = ((mSquaresVec[i][0] - pAvgOfMacro4[0]) * (mSquaresVec[i][0] - pAvgOfMacro4[0]) + (mSquaresVec[i][1] - pAvgOfMacro4[0]) * (mSquaresVec[i][1] - pAvgOfMacro4[0]) + (mSquaresVec[i][4] - pAvgOfMacro4[0]) * (mSquaresVec[i][4] - pAvgOfMacro4[0]) + (mSquaresVec[i][5] - pAvgOfMacro4[0]) * (mSquaresVec[i][5] - pAvgOfMacro4[0])) / 4;
+		pVarOfMacro4[1] = ((mSquaresVec[i][2] - pAvgOfMacro4[1]) * (mSquaresVec[i][2] - pAvgOfMacro4[1]) + (mSquaresVec[i][3] - pAvgOfMacro4[1]) * (mSquaresVec[i][3] - pAvgOfMacro4[1]) + (mSquaresVec[i][6] - pAvgOfMacro4[1]) * (mSquaresVec[i][6] - pAvgOfMacro4[1]) + (mSquaresVec[i][7] - pAvgOfMacro4[1]) * (mSquaresVec[i][7] - pAvgOfMacro4[1])) / 4;
+		pVarOfMacro4[2] = ((mSquaresVec[i][8] - pAvgOfMacro4[2]) * (mSquaresVec[i][8] - pAvgOfMacro4[2]) + (mSquaresVec[i][9] - pAvgOfMacro4[2]) * (mSquaresVec[i][9] - pAvgOfMacro4[2]) + (mSquaresVec[i][12] - pAvgOfMacro4[2]) * (mSquaresVec[i][12] - pAvgOfMacro4[2]) + (mSquaresVec[i][13] - pAvgOfMacro4[2]) * (mSquaresVec[i][13] - pAvgOfMacro4[2])) / 4;
+		pVarOfMacro4[3] = ((mSquaresVec[i][10] - pAvgOfMacro4[3]) * (mSquaresVec[i][10] - pAvgOfMacro4[3]) + (mSquaresVec[i][11] - pAvgOfMacro4[3]) * (mSquaresVec[i][11] - pAvgOfMacro4[3]) + (mSquaresVec[i][14] - pAvgOfMacro4[3]) * (mSquaresVec[i][14] - pAvgOfMacro4[3]) + (mSquaresVec[i][15] - pAvgOfMacro4[3]) * (mSquaresVec[i][15] - pAvgOfMacro4[3])) / 4;
+		pAvgVarOfSq = (pVarOfMacro4[0] + pVarOfMacro4[1] + pVarOfMacro4[2] + pVarOfMacro4[3]) / 4;
+		for (int j = 0; j < 4; j++) {
+			indexes[i] = indexes[i] * 2;
+			if (pVarOfMacro4[j] >= pAvgVarOfSq)
+				indexes[i]++;
+		}
+	}
+	mDicIndexOfSquaresVec = indexes;
+	ImproveDictionary();
 	return true;
 }
 
 bool Encoder::LBGAlgorithm(int numIter)
 {
-	for (int k = 0; k < numIter+1; k++) {
+	for (int k = 0; k < numIter + 1; k++) {
 		FindBestIndexes();
-		if(k< numIter)
+		if (k < numIter)
 			ImproveDictionary();
 	}
 	return true;
@@ -77,11 +130,11 @@ bool Encoder::FindBestIndexes()
 {
 	std::vector<std::thread> multi;
 	for (int i = 0; i < 4; i++) {
-		multi.push_back(std::thread(&Encoder::MultiSelect,this,(i * mSquaresVec.size() / 4), ((i + 1) * mSquaresVec.size() / 4)));
+		multi.push_back(std::thread(&Encoder::MultiSelect, this, (i * mSquaresVec.size() / 4), ((i + 1) * mSquaresVec.size() / 4)));
 	}
 	for (int i = 0; i < 4; i++) {
 		multi[i].join();
-		}
+	}
 	return true;
 }
 
@@ -92,7 +145,7 @@ bool Encoder::ImproveDictionary()
 		int k = 0;
 		for (int j = 0; j < mDicIndexOfSquaresVec.size(); j++) {
 			if (mDicIndexOfSquaresVec[j] == i) {
-				if (k==0)
+				if (k == 0)
 					newDictionary.push_back(mSquaresVec[j]);
 				else {
 					std::transform(newDictionary[i].begin(), newDictionary[i].end(), mSquaresVec[j].begin(), newDictionary[i].begin(), std::plus<int>());
@@ -106,6 +159,11 @@ bool Encoder::ImproveDictionary()
 		else {
 			for (int j = 0; j < newDictionary[i].size(); j++)
 				newDictionary[i][j] = newDictionary[i][j] / k;
+		}
+	}
+	for (int i = 0; i < newDictionary.size(); i++) {
+		if(newDictionary[i].size() == 0){
+			newDictionary[i].resize(16, 0);
 		}
 	}
 	mDictionary = newDictionary;

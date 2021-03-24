@@ -12,12 +12,12 @@
 #include <opencv2/highgui/highgui_c.h>
 #include <ctime>
 #define _CRT_SECURE_NO_WARNINGS
-void DrawHistogram(bool isUHD, std::vector<int> indexes,std::string filename) {
+void DrawHistogram(Encoder::EInitializationMode mode, std::vector<int> indexes,std::string filename) {
     std::vector<float> histogram;
-    if (isUHD)
-        histogram.resize(4096);
-    else
+    if (mode==Encoder::eRandom)
         histogram.resize(1024);
+    else
+        histogram.resize(4096);
     for (int i = 0; i < indexes.size(); i++) {
         histogram[indexes[i]] += 1;
     }
@@ -64,7 +64,47 @@ int main()
 {
     std::vector<std::string> filenames;
     filenames.push_back("1_1920.bmp");
-    filenames.push_back("2_1920.bmp");
+    filenames.push_back("1_3840.bmp");
+    /*filenames.push_back("2_1920.bmp");
+    filenames.push_back("3_1920.bmp");
+    filenames.push_back("4_1920.bmp");
+    filenames.push_back("5_1920.bmp");
+    filenames.push_back("6_1920.bmp");
+    filenames.push_back("7_1920.bmp");
+    filenames.push_back("8_1920.bmp");
+    filenames.push_back("9_1920.bmp");
+    filenames.push_back("10_1920.bmp");
+    filenames.push_back("11_1920.bmp");
+    filenames.push_back("12_1920.bmp");
+    filenames.push_back("13_1920.bmp");
+    filenames.push_back("14_1920.bmp");
+    filenames.push_back("15_1920.bmp");
+    filenames.push_back("16_1920.bmp");
+    filenames.push_back("17_1920.bmp");
+    filenames.push_back("18_1920.bmp");
+    filenames.push_back("19_1920.bmp");
+    filenames.push_back("20_1920.bmp");
+
+    filenames.push_back("2_3840.bmp");
+    filenames.push_back("3_3840.bmp");
+    filenames.push_back("4_3840.bmp");
+    filenames.push_back("5_3840.bmp");
+    filenames.push_back("6_3840.bmp");
+    filenames.push_back("7_3840.bmp");
+    filenames.push_back("8_3840.bmp");
+    filenames.push_back("9_3840.bmp");
+    filenames.push_back("10_3840.bmp");
+    filenames.push_back("11_3840.bmp");
+    filenames.push_back("12_3840.bmp");
+    filenames.push_back("13_3840.bmp");
+    filenames.push_back("14_3840.bmp");
+    filenames.push_back("15_3840.bmp");
+    filenames.push_back("16_3840.bmp");
+    filenames.push_back("17_3840.bmp");
+    filenames.push_back("18_3840.bmp");
+    filenames.push_back("19_3840.bmp");
+    filenames.push_back("20_3840.bmp");
+    */
     
     for (int i = 0; i < filenames.size(); i++) {
         std::string filename = filenames[i];
@@ -74,8 +114,9 @@ int main()
         bool isUHD = true;
         if (image.size() != 2160)
             isUHD = false;
+        Encoder::EInitializationMode mode = Encoder::ePNN;
 
-        Encoder* en = new Encoder(image, isUHD);
+        Encoder* en = new Encoder(image, mode);
         clock_t start = clock();
         en->EncodeToFile("test123.txt");
         std::cout << "Czas: " << clock() - start << "ms ";
@@ -83,7 +124,7 @@ int main()
         de->Decode();
         //de->Plot();
 
-        DrawHistogram(isUHD, en->GetIndexes(), filename);
+        DrawHistogram(mode, en->GetIndexes(), filename);
         PrintMSEandPSNR(image, de->GetImageInput());
         de->SaveToFile("Decoded_" + filename);
         delete de;

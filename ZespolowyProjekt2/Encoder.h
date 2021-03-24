@@ -5,7 +5,12 @@
 class Encoder
 {
 public:
-	Encoder(std::vector<std::vector<int>> image, bool isUHD = false);
+	enum EInitializationMode {
+		eRandom,
+		ePNN
+	};
+
+	Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode);
 	bool EncodeToFile(std::string filename);
 	std::vector<std::vector<int>> GetDictionary() {
 		return mDictionary;
@@ -19,6 +24,7 @@ public:
 	std::vector<std::vector<int>> GetImageVec2() {
 		return mImageVec2;
 	}
+
 	~Encoder() {
 		mAvgOfSquaresVec.clear();
 		mDicIndexOfSquaresVec.clear();
@@ -34,9 +40,11 @@ private:
 	bool FindBestIndexes();
 	bool ImproveDictionary();
 	void MultiSelect(int i, int x);
+	bool SelectFirstRandom();
+	bool SelectFirstPNN();
 	
 	bool mUHD;
-	
+	EInitializationMode mInitializationMode;
 	std::vector<int>	mAvgOfSquaresVec;
 	std::vector<int>	mDicIndexOfSquaresVec;
 	std::vector<std::vector<int>> mDictionary;
