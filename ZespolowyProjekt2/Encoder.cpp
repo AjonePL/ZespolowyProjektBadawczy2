@@ -8,8 +8,9 @@
 
 
 
-Encoder::Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode)
+Encoder::Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode, int inDictionarySize)
 {
+	mDictionarySize = inDictionarySize;
 	mInitializationMode = initializationMode;
 	mImageVec2 = image;
 }
@@ -61,24 +62,21 @@ bool Encoder::SelectFirstDictionary()
 
 
 bool Encoder::SelectFirstRandom() {
-	int dictionarySize;
-dictionarySize = 1024;
-std::vector<std::vector<int>> out;
-std::sample(
-	mSquaresVec.begin(),
-	mSquaresVec.end(),
-	std::back_inserter(mDictionary),
-	dictionarySize,
-	std::mt19937{ std::random_device{}() }
-);
+	std::vector<std::vector<int>> out;
+	std::sample(
+		mSquaresVec.begin(),
+		mSquaresVec.end(),
+		std::back_inserter(mDictionary),
+		mDictionarySize,
+		std::mt19937{ std::random_device{}() }
+	);
 
-return true;
+	return true;
 }
 
 bool Encoder::SelectFirstPNN()
 {
-	int dictionarySize = 4096;
-	mDictionary.resize(dictionarySize);
+	mDictionary.resize(mDictionarySize);
 	std::vector<int> indexes(mSquaresVec.size(), 0);
 	for (int i = 0; i < mSquaresVec.size(); i++) {
 		std::vector<float> pAvgOfMacro2(8, 0.0);

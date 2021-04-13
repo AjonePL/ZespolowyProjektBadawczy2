@@ -11,38 +11,53 @@
 #include <opencv2/core/types_c.h>
 #include <opencv2/highgui/highgui_c.h>
 #include <ctime>
+#define CVPLOT_HEADER_ONLY
+#include <CvPlot/cvplot.h>
 #define _CRT_SECURE_NO_WARNINGS
-void DrawHistogram(Encoder::EInitializationMode mode, std::vector<int> indexes,std::string filename) {
+struct indexWystapienia {
+    int index;
+    int wystapienia;
+};
+
+indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,std::string filename) {
     std::vector<float> histogram;
-    if (mode==Encoder::eRandom)
-        histogram.resize(1024);
-    else
-        histogram.resize(4096);
+    histogram.resize(inDictionarySize);
     for (int i = 0; i < indexes.size(); i++) {
         histogram[indexes[i]] += 1;
     }
-    float histMax = 0;
+    int maxnum = 0;
+    int indeks = 0;
     for (int i = 0; i < histogram.size(); i++) {
-        histogram[i] = histogram[i] / indexes.size();
-        if (histMax < histogram[i])
-            histMax = histogram[i];
+        if (maxnum < histogram[i]) {
+            maxnum = histogram[i];
+            indeks = i;
+        }
     }
+    /* Normalizacja
+    float histSum = 0;
     for (int i = 0; i < histogram.size(); i++) {
-        histogram[i] = ceil(700 * histogram[i] / histMax);
+        histSum += histogram[i];
+    }*/
+    for (int i = 0; i < histogram.size(); i++) {
+        histogram[i] = histogram[i]; // podziel przez histSum przy normalizacji
     }
 
-    cv::Mat rook_image = cv::Mat::zeros(800, 1024, CV_8UC3);
-    for (int i = 0; i < histogram.size() - 1; i++) {
-        cv::line(rook_image,
-            cv::Point(i, 800),
-            cv::Point(i, 800 - histogram[i]),
-            cv::Scalar(0, 255, 0),
-            2,
-            cv::LINE_8);
-    }
+
+
+    std::sort(histogram.begin(), histogram.end(), std::greater<float>());
+
+    auto axes2 = CvPlot::plot(histogram);
+    cv::Mat mat = axes2.render(800, 1024);
+    //CvPlot::show("mywindow", axes2);
+    cv::imshow("mywindow", mat);
+
     filename = "Hist_" + filename;
-    cv::imwrite(filename, rook_image);
+    cv::imwrite(filename, mat);
     int k = cv::waitKey(0);
+    indexWystapienia maxIndex;
+    maxIndex.index = indeks;
+    maxIndex.wystapienia = maxnum;
+    return maxIndex;
 }
 void PrintMSEandPSNR(std::vector<std::vector<int>> image, std::vector<std::vector<uchar>> wynik) {
     float PSNR = 0;
@@ -62,11 +77,13 @@ void PrintMSEandPSNR(std::vector<std::vector<int>> image, std::vector<std::vecto
 
 int main()
 {
+    int dictionarySize = 1024;
+    Encoder::EInitializationMode mode = Encoder::eRandom;
+
     std::vector<std::string> filenames;
-    filenames.push_back("1_1920.bmp");
-    filenames.push_back("1_3840.bmp");
-    /*filenames.push_back("2_1920.bmp");
-    filenames.push_back("3_1920.bmp");
+    //filenames.push_back("1_3840.bmp");
+    filenames.push_back("2_1920.bmp");
+    /*filenames.push_back("3_1920.bmp");
     filenames.push_back("4_1920.bmp");
     filenames.push_back("5_1920.bmp");
     filenames.push_back("6_1920.bmp");
@@ -114,9 +131,8 @@ int main()
         bool isUHD = true;
         if (image.size() != 2160)
             isUHD = false;
-        Encoder::EInitializationMode mode = Encoder::ePNN;
 
-        Encoder* en = new Encoder(image, mode);
+        Encoder* en = new Encoder(image, mode,dictionarySize);
         clock_t start = clock();
         en->EncodeToFile("test123.txt");
         std::cout << "Czas: " << clock() - start << "ms ";
@@ -124,7 +140,13 @@ int main()
         de->Decode();
         //de->Plot();
 
-        DrawHistogram(mode, en->GetIndexes(), filename);
+       indexWystapienia indWys = DrawHistogram(dictionarySize, en->GetIndexes(), filename);
+        std::cout << indWys.wystapienia << " ";
+        std::vector<std::vector<int>> dictionary =  en->GetDictionary();
+        for (int j = 0; j < dictionary[0].size(); j++) {
+            std::cout << dictionary[indWys.index][j] << " ";
+        }
+        std::cout << std::endl;
         PrintMSEandPSNR(image, de->GetImageInput());
         de->SaveToFile("Decoded_" + filename);
         delete de;

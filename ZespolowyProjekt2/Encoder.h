@@ -10,7 +10,7 @@ public:
 		ePNN
 	};
 
-	Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode);
+	Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode,int inDictionarySize);
 	bool EncodeToFile(std::string filename);
 	std::vector<std::vector<int>> GetDictionary() {
 		return mDictionary;
@@ -44,6 +44,7 @@ private:
 	bool SelectFirstPNN();
 	
 	bool mUHD;
+	int mDictionarySize;
 	EInitializationMode mInitializationMode;
 	std::vector<int>	mAvgOfSquaresVec;
 	std::vector<int>	mDicIndexOfSquaresVec;
