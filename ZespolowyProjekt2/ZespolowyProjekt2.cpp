@@ -77,15 +77,16 @@ void PrintMSEandPSNR(std::vector<std::vector<int>> image, std::vector<std::vecto
 
 int main()
 {
-    int dictionarySize = 1024;
-    Encoder::EInitializationMode mode = Encoder::eRandom;
+    int dictionarySize = 4096;
+    Encoder::EInitializationMode mode = Encoder::ePNN;
 
     std::vector<std::string> filenames;
+    filenames.push_back("fhd_grey_14.tif");
     //filenames.push_back("1_3840.bmp");
-    filenames.push_back("2_1920.bmp");
-    /*filenames.push_back("3_1920.bmp");
-    filenames.push_back("4_1920.bmp");
-    filenames.push_back("5_1920.bmp");
+    //filenames.push_back("2_1920.bmp");
+    //filenames.push_back("3_1920.bmp");
+    //filenames.push_back("4_1920.bmp");
+    /*filenames.push_back("5_1920.bmp");
     filenames.push_back("6_1920.bmp");
     filenames.push_back("7_1920.bmp");
     filenames.push_back("8_1920.bmp");
@@ -136,22 +137,29 @@ int main()
         clock_t start = clock();
         en->EncodeToFile("test123.txt");
         std::cout << "Czas: " << clock() - start << "ms ";
-        Decoder* de = new Decoder(en->GetAvgOfSquaresVec(), en->GetIndexes(), en->GetDictionary(), isUHD);
+        std::vector<std::vector<int>> dictionary = en->GetDictionary();
+        Decoder* de = new Decoder(en->GetAvgOfSquaresVec(), en->GetIndexes(), dictionary, isUHD);
         de->Decode();
         //de->Plot();
 
        indexWystapienia indWys = DrawHistogram(dictionarySize, en->GetIndexes(), filename);
-        std::cout << indWys.wystapienia << " ";
-        std::vector<std::vector<int>> dictionary =  en->GetDictionary();
-        for (int j = 0; j < dictionary[0].size(); j++) {
-            std::cout << dictionary[indWys.index][j] << " ";
-        }
-        std::cout << std::endl;
-        PrintMSEandPSNR(image, de->GetImageInput());
-        de->SaveToFile("Decoded_" + filename);
-        delete de;
-        delete en;
-        delete rd;
+       int iloscNiepustych = 0;
+       for (int j = 0; j < dictionary.size(); j++) {
+           if (dictionary[j].size() > 0)
+               iloscNiepustych++;
+       }
+       std::cout << "Rozmiar slownika: " << iloscNiepustych << std::endl;
+       std::cout << indWys.wystapienia << " ";
+       
+       for (int j = 0; j < 16; j++) {
+           std::cout << dictionary[indWys.index][j] << " ";
+       }
+       std::cout << std::endl;
+       PrintMSEandPSNR(image, de->GetImageInput());
+       de->SaveToFile("Decoded_" + filename);
+       delete de;
+       delete en;
+       delete rd;
     }
     return 0;
 }

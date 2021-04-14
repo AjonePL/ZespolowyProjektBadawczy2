@@ -159,11 +159,13 @@ bool Encoder::ImproveDictionary()
 				newDictionary[i][j] = newDictionary[i][j] / k;
 		}
 	}
+	/* puste
 	for (int i = 0; i < newDictionary.size(); i++) {
 		if(newDictionary[i].size() == 0){
-			newDictionary[i].resize(16, 0);
+			//newDictionary[i].resize(16, 0);
 		}
 	}
+*/
 	mDictionary = newDictionary;
 	newDictionary.clear();
 	return true;
@@ -175,10 +177,10 @@ void Encoder::MultiSelect(int x, int y)
 		int minSum = std::numeric_limits<int>::max();
 		for (int j = 0; j < mDictionary.size(); j++) {
 			int sum = 0;
-			for (int k = 0; k < mDictionary[0].size(); k++) {
+			for (int k = 0; k < mDictionary[j].size(); k++) {
 				sum += (mDictionary[j][k] - mSquaresVec[i][k]) * (mDictionary[j][k] - mSquaresVec[i][k]);
 			}
-			if (sum < minSum) {
+			if (sum < minSum && mDictionary[j].size()>0) {
 				mDicIndexOfSquaresVec[i] = j;
 				minSum = sum;
 			}
