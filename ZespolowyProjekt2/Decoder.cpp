@@ -1,5 +1,22 @@
 #include "Decoder.h"
 
+
+void Decoder::PrintMSEandPSNR(std::vector<std::vector<int>> image) {
+	float PSNR = 0;
+	float MSE = 0;
+	float maxOrg = 0;
+	for (int i = 0; i < mImageInput.size(); i++) {
+		for (int j = 0; j < mImageInput[0].size(); j++) {
+			MSE += (image[i][j] - mImageInput[i][j]) * (image[i][j] - mImageInput[i][j]);
+			if (image[i][j] > maxOrg)
+				maxOrg = image[i][j];
+		}
+	}
+	MSE = MSE / (mImageInput.size() * mImageInput[0].size());
+	PSNR = 10 * log10(maxOrg * maxOrg / MSE);
+	std::cout << "MSE : " << MSE << " PSNR : " << PSNR << std::endl;
+}
+
 bool Decoder::Decode()
 {
 	int p = 0;

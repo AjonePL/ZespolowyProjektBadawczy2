@@ -10,7 +10,7 @@ public:
 		ePNN
 	};
 
-	Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode,int inDictionarySize);
+	Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode,int inDictionarySize,bool showPSNR);
 	bool EncodeToFile(std::string filename);
 	std::vector<std::vector<int>> GetDictionary() {
 		return mDictionary;
@@ -51,6 +51,6 @@ private:
 	std::vector<std::vector<int>> mDictionary;
 	std::vector<std::vector<int>> mImageVec2;
 	std::vector<std::vector<int>> mSquaresVec;
-
+	bool				mShowPSNR;
 };
 

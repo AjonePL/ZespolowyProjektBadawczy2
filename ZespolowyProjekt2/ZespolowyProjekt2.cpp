@@ -59,29 +59,15 @@ indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,st
     maxIndex.wystapienia = maxnum;
     return maxIndex;
 }
-void PrintMSEandPSNR(std::vector<std::vector<int>> image, std::vector<std::vector<uchar>> wynik) {
-    float PSNR = 0;
-    float MSE = 0;
-    float maxOrg = 0;
-    for (int i = 0; i < wynik.size(); i++) {
-        for (int j = 0; j < wynik[0].size(); j++) {
-            MSE += (image[i][j] - wynik[i][j]) * (image[i][j] - wynik[i][j]);
-            if (image[i][j] > maxOrg)
-                maxOrg = image[i][j];
-        }
-    }
-    MSE = MSE / (wynik.size() * wynik[0].size());
-    PSNR = 10 * log10(maxOrg * maxOrg / MSE);
-    std::cout <<"MSE : "<<MSE<<" PSNR : "<< PSNR << std::endl;
-}
 
 int main()
 {
     int dictionarySize = 4096;
     Encoder::EInitializationMode mode = Encoder::ePNN;
+    bool checkIteration = false;
 
     std::vector<std::string> filenames;
-    filenames.push_back("fhd_grey_14.tif");
+    filenames.push_back("1_1920.bmp");
     //filenames.push_back("1_3840.bmp");
     //filenames.push_back("2_1920.bmp");
     //filenames.push_back("3_1920.bmp");
@@ -133,7 +119,7 @@ int main()
         if (image.size() != 2160)
             isUHD = false;
 
-        Encoder* en = new Encoder(image, mode,dictionarySize);
+        Encoder* en = new Encoder(image, mode, dictionarySize, checkIteration);
         clock_t start = clock();
         en->EncodeToFile("test123.txt");
         std::cout << "Czas: " << clock() - start << "ms ";
@@ -155,7 +141,7 @@ int main()
            std::cout << dictionary[indWys.index][j] << " ";
        }
        std::cout << std::endl;
-       PrintMSEandPSNR(image, de->GetImageInput());
+       de->PrintMSEandPSNR(image);
        de->SaveToFile("Decoded_" + filename);
        delete de;
        delete en;

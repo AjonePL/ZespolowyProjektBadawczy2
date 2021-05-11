@@ -24,6 +24,7 @@ public:
 		mDictionary.clear();
 		mImageInput.clear();
 	};
+	void PrintMSEandPSNR(std::vector<std::vector<int>> image);
 	bool Decode();
 	bool Plot();
 	bool SaveToFile(std::string filename);

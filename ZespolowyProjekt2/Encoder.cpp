@@ -5,21 +5,22 @@
 #include <limits> 
 #include <thread>
 #include <functional>
+#include "Decoder.h"
 
 
-
-Encoder::Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode, int inDictionarySize)
+Encoder::Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode, int inDictionarySize, bool inShowPSNR = false)
 {
 	mDictionarySize = inDictionarySize;
 	mInitializationMode = initializationMode;
 	mImageVec2 = image;
+	mShowPSNR = inShowPSNR;
 }
 
 bool Encoder::EncodeToFile(std::string filename)
 {
 	DivideImage();
 	SelectFirstDictionary();
-	LBGAlgorithm(20);
+	LBGAlgorithm(mShowPSNR ? 100 : 20);
 	return false;
 }
 
@@ -62,6 +63,7 @@ bool Encoder::SelectFirstDictionary()
 
 
 bool Encoder::SelectFirstRandom() {
+	clock_t start = clock();
 	std::vector<std::vector<int>> out;
 	std::sample(
 		mSquaresVec.begin(),
@@ -71,11 +73,13 @@ bool Encoder::SelectFirstRandom() {
 		std::mt19937{ std::random_device{}() }
 	);
 
+	std::cout << "Czas Inicjalizacji: " << clock() - start << "ms " << std::endl;
 	return true;
 }
 
 bool Encoder::SelectFirstPNN()
 {
+	clock_t start = clock();
 	mDictionary.resize(mDictionarySize);
 	std::vector<int> indexes(mSquaresVec.size(), 0);
 	for (int i = 0; i < mSquaresVec.size(); i++) {
@@ -111,6 +115,18 @@ bool Encoder::SelectFirstPNN()
 	}
 	mDicIndexOfSquaresVec = indexes;
 	ImproveDictionary();
+	for (int i = 0; i < mDictionary.size(); i++) {
+		while (mDictionary[i].size() == 0) {
+			int index = rand() % mSquaresVec.size();
+			auto it = std::find(std::begin(mDictionary), std::end(mDictionary), mSquaresVec[index]);
+			if (it == std::end(mDictionary)) {
+				mDictionary[i] = mSquaresVec[index];
+			}
+		}
+
+	}
+	
+	std::cout << "Czas Inicjalizacji: " << clock() - start << "ms "<<std::endl;
 	return true;
 }
 
@@ -118,6 +134,12 @@ bool Encoder::LBGAlgorithm(int numIter)
 {
 	for (int k = 0; k < numIter + 1; k++) {
 		FindBestIndexes();
+		if ((k+1)%5==0 && mShowPSNR) {
+			std::cout << "Iteracja " << (k + 1) << " :" << std::endl;
+			Decoder* de = new Decoder(mAvgOfSquaresVec, mDicIndexOfSquaresVec, mDictionary, mUHD);
+			de->Decode();
+			de->PrintMSEandPSNR(mImageVec2);
+		}
 		if (k < numIter)
 			ImproveDictionary();
 	}
