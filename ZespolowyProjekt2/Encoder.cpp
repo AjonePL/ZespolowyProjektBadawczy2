@@ -178,7 +178,7 @@ bool Encoder::ImproveDictionary()
 		}
 		else {
 			for (int j = 0; j < newDictionary[i].size(); j++)
-				newDictionary[i][j] = newDictionary[i][j] / k;
+				newDictionary[i][j] = (int)round((float)newDictionary[i][j] / (float)k);
 		}
 	}
 	/* puste

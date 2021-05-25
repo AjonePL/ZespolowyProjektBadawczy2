@@ -33,11 +33,11 @@ indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,st
             indeks = i;
         }
     }
-    /* Normalizacja
+    // Normalizacja
     float histSum = 0;
     for (int i = 0; i < histogram.size(); i++) {
         histSum += histogram[i];
-    }*/
+    }
     for (int i = 0; i < histogram.size(); i++) {
         histogram[i] = histogram[i]; // podziel przez histSum przy normalizacji
     }
@@ -45,6 +45,8 @@ indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,st
 
 
     std::sort(histogram.begin(), histogram.end(), std::greater<float>());
+
+
 
     auto axes2 = CvPlot::plot(histogram);
     cv::Mat mat = axes2.render(800, 1024);
@@ -57,13 +59,24 @@ indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,st
     indexWystapienia maxIndex;
     maxIndex.index = indeks;
     maxIndex.wystapienia = maxnum;
+
+    float Entropia = 0.0;
+    for (int i = 0; i < histogram.size(); i++) {
+        Entropia -= histogram[i] / histSum * std::log2(histogram[i] / histSum);
+    }
+
+
+    std::cout << "Entropia : " << Entropia << std::endl;
+
+
+
     return maxIndex;
 }
 
 int main()
 {
-    int dictionarySize = 4096;
-    Encoder::EInitializationMode mode = Encoder::ePNN;
+    int dictionarySize = 1024;
+    Encoder::EInitializationMode mode = Encoder::eRandom;
     bool checkIteration = false;
 
     std::vector<std::string> filenames;
