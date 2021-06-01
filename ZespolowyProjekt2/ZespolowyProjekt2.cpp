@@ -62,7 +62,8 @@ indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,st
 
     float Entropia = 0.0;
     for (int i = 0; i < histogram.size(); i++) {
-        Entropia -= histogram[i] / histSum * std::log2(histogram[i] / histSum);
+        if(histogram[i]>0)
+            Entropia -= histogram[i] / histSum * std::log2(histogram[i] / histSum);
     }
 
 
