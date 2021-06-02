@@ -51,6 +51,9 @@ bool Encoder::SelectFirstDictionary()
 	case eRandom:
 		SelectFirstRandom();
 		break;
+	case eAvgVar:
+		SelectFirstAvgVar();
+		break;
 	case ePNN:
 		SelectFirstPNN();
 		break;
@@ -77,7 +80,103 @@ bool Encoder::SelectFirstRandom() {
 	return true;
 }
 
-bool Encoder::SelectFirstPNN()
+struct DiffInfo {
+	float diff;
+	int index;
+	DiffInfo(float a, int b) {
+		diff = a;
+		index = b;
+	}
+};
+double vecDiff(std::vector<int> first, std::vector<int> second) {
+	double result=0;
+	for (int i = 0; i < first.size(); i++) {
+		result += (first[i] - second[i]) * (first[i] - second[i]);
+	}
+	return result;
+}
+
+std::vector<DiffInfo> CalculateSmallestDiffs(std::vector<std::vector<int>> inClusters) {
+	std::vector<DiffInfo> outVec;
+	for (int i = 0; i < inClusters.size();i++) {
+		float minDist = std::numeric_limits<float>::max();
+		int index = 0;
+		for (int j = 0; j < inClusters.size(); j++) {
+			if (i == j)
+				continue;
+			float minIter = vecDiff(inClusters[i], inClusters[j]);
+			if (minIter < minDist) {
+				minDist = minIter;
+				index = j;
+			}
+		}
+		outVec.push_back(DiffInfo(minDist, index));
+	}
+	
+	
+	return outVec;
+}
+DiffInfo FindSmallestDiff(std::vector<DiffInfo> &infoVec, int *index) {
+	DiffInfo min = infoVec[0];
+	*index = 0;
+	for (int i = 1; i < infoVec.size(); i++) {
+		if (infoVec[i].diff < min.diff){
+			min = infoVec[i];
+			*index = i;
+		}
+	}
+	return min;
+}
+void RecalculateDiffs(std::vector<std::vector<int>> inClusters, std::vector<DiffInfo> &infoVec, int a, int b) {
+	for (int i = 0; i < infoVec.size(); i++) {
+		if (i == b || inClusters[i].size() == 0)
+			continue;
+		if (infoVec[i].index == a || infoVec[i].index == b) {
+			float minDist = std::numeric_limits<float>::max();
+			int index = 0;
+			for (int j = 0; j < inClusters.size(); j++) {
+				if (i == j || j == b || inClusters[j].size() == 0)
+					continue;
+				float minIter = vecDiff(inClusters[i], inClusters[j]);
+				if (minIter < minDist) {
+					minDist = minIter;
+					index = j;
+				}
+			}
+			infoVec[i].index = index;
+			infoVec[i].diff = minDist;
+		}
+	}
+}
+
+bool Encoder::SelectFirstPNN() {
+	std::vector<std::vector<int>> pListOfClusters = mSquaresVec;
+
+	std::vector<int> pClusterValue;
+	for (int i = 0; i < pListOfClusters.size(); i++)
+		pClusterValue.push_back(1);
+	std::vector<DiffInfo> infoVec = CalculateSmallestDiffs(pListOfClusters);
+	for(int x=0;x< infoVec.size()-mDictionarySize ;x++) {
+		std::cout << x << std::endl;
+		int a;
+		DiffInfo min = FindSmallestDiff(infoVec, &a);
+		int b = min.index;
+
+		for (int i = 0; i < pListOfClusters[a].size(); i++) {
+			pListOfClusters[a][i] = std::round((pListOfClusters[a][i] * pClusterValue[a] + pListOfClusters[b][i] * pClusterValue[b]) / (pClusterValue[a] + pClusterValue[b]));
+		}
+		RecalculateDiffs(pListOfClusters,infoVec, a, b);
+		pListOfClusters[b].clear();
+		infoVec[b].diff= std::numeric_limits<float>::max();
+		infoVec[b].index = -1;
+	}
+	for (int i = 0; i < pListOfClusters.size(); i++) {
+		if (pListOfClusters[i].size() > 0)
+			mDictionary.push_back(pListOfClusters[i]);
+	}
+	return true;
+}
+bool Encoder::SelectFirstAvgVar()
 {
 	clock_t start = clock();
 	mDictionary.resize(mDictionarySize);

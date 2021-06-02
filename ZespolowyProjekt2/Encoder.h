@@ -7,7 +7,8 @@ class Encoder
 public:
 	enum EInitializationMode {
 		eRandom,
-		ePNN
+		ePNN,
+		eAvgVar
 	};
 
 	Encoder(std::vector<std::vector<int>> image, EInitializationMode initializationMode,int inDictionarySize,bool showPSNR);
@@ -42,6 +43,7 @@ private:
 	void MultiSelect(int i, int x);
 	bool SelectFirstRandom();
 	bool SelectFirstPNN();
+	bool SelectFirstAvgVar();
 	
 	bool mUHD;
 	int mDictionarySize;

@@ -77,7 +77,7 @@ indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,st
 int main()
 {
     int dictionarySize = 1024;
-    Encoder::EInitializationMode mode = Encoder::eRandom;
+    Encoder::EInitializationMode mode = Encoder::ePNN;
     bool checkIteration = false;
 
     std::vector<std::string> filenames;
