@@ -151,13 +151,12 @@ void RecalculateDiffs(std::vector<std::vector<int>> inClusters, std::vector<Diff
 
 bool Encoder::SelectFirstPNN() {
 	std::vector<std::vector<int>> pListOfClusters = mSquaresVec;
-
+	clock_t start = clock();
 	std::vector<int> pClusterValue;
 	for (int i = 0; i < pListOfClusters.size(); i++)
 		pClusterValue.push_back(1);
 	std::vector<DiffInfo> infoVec = CalculateSmallestDiffs(pListOfClusters);
 	for(int x=0;x< infoVec.size()-mDictionarySize ;x++) {
-		std::cout << x << std::endl;
 		int a;
 		DiffInfo min = FindSmallestDiff(infoVec, &a);
 		int b = min.index;
@@ -174,6 +173,7 @@ bool Encoder::SelectFirstPNN() {
 		if (pListOfClusters[i].size() > 0)
 			mDictionary.push_back(pListOfClusters[i]);
 	}
+	std::cout << "Czas Inicjalizacji: " << clock() - start << "ms " << std::endl;
 	return true;
 }
 bool Encoder::SelectFirstAvgVar()
