@@ -150,7 +150,12 @@ void RecalculateDiffs(std::vector<std::vector<int>> inClusters, std::vector<Diff
 }
 
 bool Encoder::SelectFirstPNN() {
-	std::vector<std::vector<int>> pListOfClusters = mSquaresVec;
+	std::vector<std::vector<int>> pListOfClusters;
+	int step = 15;
+	for (int i = 0; i < pListOfClusters.size(); i++) {
+		pListOfClusters.push_back(mSquaresVec[i]);
+		i += step;
+	}
 	clock_t start = clock();
 	std::vector<int> pClusterValue;
 	for (int i = 0; i < pListOfClusters.size(); i++)
