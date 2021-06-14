@@ -19,7 +19,7 @@ struct indexWystapienia {
     int wystapienia;
 };
 
-indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,std::string filename) {
+indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,std::string filename, bool histDraw) {
     std::vector<float> histogram;
     histogram.resize(inDictionarySize);
     for (int i = 0; i < indexes.size(); i++) {
@@ -47,15 +47,16 @@ indexWystapienia DrawHistogram(int inDictionarySize, std::vector<int> indexes,st
     std::sort(histogram.begin(), histogram.end(), std::greater<float>());
 
 
+    if (histDraw) {
+        auto axes2 = CvPlot::plot(histogram);
+        cv::Mat mat = axes2.render(800, 1024);
+        //CvPlot::show("mywindow", axes2);
+        cv::imshow("mywindow", mat);
 
-    auto axes2 = CvPlot::plot(histogram);
-    cv::Mat mat = axes2.render(800, 1024);
-    //CvPlot::show("mywindow", axes2);
-    cv::imshow("mywindow", mat);
-
-    filename = "Hist_" + filename;
-    cv::imwrite(filename, mat);
-    int k = cv::waitKey(0);
+        filename = "Hist_" + filename;
+        cv::imwrite(filename, mat);
+        int k = cv::waitKey(0);
+    }
     indexWystapienia maxIndex;
     maxIndex.index = indeks;
     maxIndex.wystapienia = maxnum;
@@ -81,8 +82,8 @@ int main()
     bool checkIteration = false;
 
     std::vector<std::string> filenames;
-    filenames.push_back("1_1920.bmp");
-    //filenames.push_back("1_3840.bmp");
+    //filenames.push_back("1_1920.bmp");
+    filenames.push_back("1_3840.bmp");
     //filenames.push_back("2_1920.bmp");
     //filenames.push_back("3_1920.bmp");
     //filenames.push_back("4_1920.bmp");
@@ -123,7 +124,8 @@ int main()
     filenames.push_back("19_3840.bmp");
     filenames.push_back("20_3840.bmp");
     */
-    
+    bool MAP = true;
+
     for (int i = 0; i < filenames.size(); i++) {
         std::string filename = filenames[i];
         std::cout << i << ". " << filename << " ";
@@ -134,6 +136,17 @@ int main()
             isUHD = false;
 
         Encoder* en = new Encoder(image, mode, dictionarySize, checkIteration);
+
+        if (MAP) {
+            std::vector<int> temp = en->GetMAPerrors();
+            for (int p = 0; p < temp.size(); p++)
+                temp[p] += 255;
+            DrawHistogram(512, temp, filename,false);
+            continue;
+        }
+
+
+
         clock_t start = clock();
         en->EncodeToFile("test123.txt");
         std::cout << "Czas: " << clock() - start << "ms ";
@@ -142,7 +155,7 @@ int main()
         de->Decode();
         //de->Plot();
 
-       indexWystapienia indWys = DrawHistogram(dictionarySize, en->GetIndexes(), filename);
+       indexWystapienia indWys = DrawHistogram(dictionarySize, en->GetIndexes(), filename,true);
        int iloscNiepustych = 0;
        for (int j = 0; j < dictionary.size(); j++) {
            if (dictionary[j].size() > 0)

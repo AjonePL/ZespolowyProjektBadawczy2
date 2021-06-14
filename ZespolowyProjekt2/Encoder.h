@@ -25,6 +25,7 @@ public:
 	std::vector<std::vector<int>> GetImageVec2() {
 		return mImageVec2;
 	}
+	std::vector<int> GetMAPerrors();
 
 	~Encoder() {
 		mAvgOfSquaresVec.clear();
@@ -54,5 +55,6 @@ private:
 	std::vector<std::vector<int>> mImageVec2;
 	std::vector<std::vector<int>> mSquaresVec;
 	bool				mShowPSNR;
+
 };
 

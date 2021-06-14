@@ -24,6 +24,54 @@ bool Encoder::EncodeToFile(std::string filename)
 	return false;
 }
 
+std::vector<int> Encoder::GetMAPerrors()
+{
+	std::vector<std::vector<int>> mSquare4x4;
+	std::vector<std::vector<int>> mErrors4x4;
+	for (int i = 0; i < mImageVec2.size() / 4; i++) {
+		mSquare4x4.push_back(std::vector<int>());
+		mErrors4x4.push_back(std::vector<int>());
+		for (int j = 0; j < mImageVec2[0].size() / 4; j++) {
+			int sum = 0;
+			for (int x = 0; x < 4; x++) {
+				for (int y = 0; y < 4; y++) {
+					sum += mImageVec2[i * 4 + x][j * 4 + y];
+				}
+			}
+			sum = sum / 16;
+			mSquare4x4[i].push_back(sum);
+			mErrors4x4[i].push_back(0);
+		}
+	}
+	for (int i = 0; i < mErrors4x4.size(); i++) {
+		for (int j = 0; j < mErrors4x4.size(); j++) {
+			int error = 0;
+			int xmed = 0;
+			if (i == 0 and j == 0) {
+				xmed = mSquare4x4[i][j];
+			}
+			else if (i == 0) {
+				xmed = mSquare4x4[i][j - 1];
+			}
+			else if (j == 0) {
+				xmed = mSquare4x4[i - 1][j];
+			}
+			else {
+				xmed = std::min(std::min(mSquare4x4[i - 1][j], mSquare4x4[i][j - 1]), mSquare4x4[i - 1][j - 1]) + std::max(std::max(mSquare4x4[i - 1][j], mSquare4x4[i][j - 1]), mSquare4x4[i - 1][j - 1]) - mSquare4x4[i - 1][j - 1];
+			}
+			error = mSquare4x4[i][j] - xmed;
+			mErrors4x4[i][j]=error;
+		}
+	}
+	std::vector<int> oErrorsVec;
+	for (int i = 0; i < mErrors4x4.size(); i++) {
+		for (int j = 0; j < mErrors4x4.size(); j++) {
+			oErrorsVec.push_back(mErrors4x4[i][j]);
+		}
+	}
+	return oErrorsVec;
+}
+
 bool Encoder::DivideImage() {
 	for (int i = 0; i < mImageVec2.size(); i += 4) {
 		for (int j = 0; j < mImageVec2[0].size(); j += 4) {
